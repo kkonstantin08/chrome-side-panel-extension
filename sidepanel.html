@@ -33,34 +33,40 @@
     </header>
 
     <main class="workspace">
-      <section class="panel panel--faded">
+      <section id="site-panel" class="panel panel--faded site-panel">
         <div class="panel__header">
           <div>
             <p class="panel__label">Saved stack</p>
             <h2>Quick launch list</h2>
           </div>
-          <button id="reset-defaults" class="ghost-btn" type="button">Reset defaults</button>
+          <div class="panel__actions">
+            <button id="reset-defaults" class="ghost-btn" type="button">Reset defaults</button>
+            <button id="toggle-site-list" class="ghost-btn" type="button" aria-expanded="true">Hide list</button>
+          </div>
         </div>
 
+        <button id="site-list-summary" class="site-list-summary" type="button" hidden></button>
         <div id="site-list" class="site-list"></div>
       </section>
 
       <section class="panel viewer-panel">
-        <div class="panel__header panel__header--viewer">
-          <div>
-            <p class="panel__label">Embedded view</p>
-            <h2 id="viewer-title">Choose a website</h2>
-            <p id="viewer-url" class="viewer-url">Your selected tool will open here inside the side panel.</p>
-          </div>
+        <div class="viewer-toolbar">
+          <p id="viewer-title" class="viewer-toolbar__title">Choose a website</p>
           <a
             id="open-external-link"
-            class="ghost-btn ghost-btn--link ghost-btn--disabled"
+            class="icon-link ghost-btn--disabled"
             href="#"
             target="_blank"
             rel="noreferrer"
             aria-disabled="true"
+            aria-label="Open current website in a new tab"
+            title="Open current website in a new tab"
           >
-            Open in tab
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 5h5v5"></path>
+              <path d="M10 14 19 5"></path>
+              <path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4"></path>
+            </svg>
           </a>
         </div>
 

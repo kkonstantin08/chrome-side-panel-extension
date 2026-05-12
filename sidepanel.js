@@ -18,10 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
     addForm: document.getElementById("add-form"),
     urlInput: document.getElementById("url-input"),
     formFeedback: document.getElementById("form-feedback"),
+    sitePanel: document.getElementById("site-panel"),
     siteList: document.getElementById("site-list"),
+    siteListSummary: document.getElementById("site-list-summary"),
     resetDefaults: document.getElementById("reset-defaults"),
+    toggleSiteList: document.getElementById("toggle-site-list"),
     viewerTitle: document.getElementById("viewer-title"),
-    viewerUrl: document.getElementById("viewer-url"),
     openExternalLink: document.getElementById("open-external-link"),
     contentFrame: document.getElementById("content-frame"),
     emptyState: document.getElementById("empty-state"),
@@ -29,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let sites = [];
   let activeSiteId = null;
+  let listCollapsed = false;
 
   initialize();
 
@@ -54,17 +57,23 @@ document.addEventListener("DOMContentLoaded", () => {
         persistSites();
       }
 
-      const activeSite = sites.find((site) => site.id === activeSiteId) ?? sites[0] ?? null;
+      const activeSite = activeSiteId
+        ? sites.find((site) => site.id === activeSiteId) ?? sites[0] ?? null
+        : null;
 
       if (activeSite) {
         openSite(activeSite, false);
       } else {
+        closeViewer();
+        updateListCollapse(false);
         renderSites();
       }
     });
 
     elements.addForm.addEventListener("submit", handleAddSite);
     elements.resetDefaults.addEventListener("click", resetDefaults);
+    elements.toggleSiteList.addEventListener("click", () => updateListCollapse(!listCollapsed));
+    elements.siteListSummary.addEventListener("click", () => updateListCollapse(false));
   }
 
   function handleAddSite(event) {
@@ -168,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
       activeSiteId = null;
       persistActiveSite();
       closeViewer();
+      updateListCollapse(false);
       renderSites();
       setFormFeedback("The dock is empty. Reset defaults or add a new site.", "error");
       return;
@@ -206,14 +216,16 @@ document.addEventListener("DOMContentLoaded", () => {
       persistSites();
     }
 
+    updateListCollapse(true);
     elements.contentFrame.src = site.url;
     elements.contentFrame.style.display = "block";
     elements.emptyState.style.display = "none";
     elements.viewerTitle.textContent = site.name;
-    elements.viewerUrl.textContent = site.url;
     elements.openExternalLink.href = site.url;
     elements.openExternalLink.classList.remove("ghost-btn--disabled");
     elements.openExternalLink.setAttribute("aria-disabled", "false");
+    elements.openExternalLink.title = `Open ${site.name} in a new tab`;
+    elements.openExternalLink.setAttribute("aria-label", `Open ${site.name} in a new tab`);
     renderSites();
   }
 
@@ -222,10 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.contentFrame.style.display = "none";
     elements.emptyState.style.display = "grid";
     elements.viewerTitle.textContent = "Choose a website";
-    elements.viewerUrl.textContent = "Your selected tool will open here inside the side panel.";
     elements.openExternalLink.href = "#";
     elements.openExternalLink.classList.add("ghost-btn--disabled");
     elements.openExternalLink.setAttribute("aria-disabled", "true");
+    elements.openExternalLink.title = "Open current website in a new tab";
+    elements.openExternalLink.setAttribute("aria-label", "Open current website in a new tab");
   }
 
   function setFormFeedback(message, tone = "") {
@@ -245,6 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.siteList.innerHTML = "";
 
     if (!sites.length) {
+      updateListSummary();
       const emptyCard = document.createElement("div");
       emptyCard.className = "site-list__empty";
       emptyCard.textContent = "No saved websites yet. Add one above to start your workspace.";
@@ -268,6 +282,8 @@ document.addEventListener("DOMContentLoaded", () => {
       countLabel: `${allSites.length}`,
       emptyMessage: "No regular sites yet. Add a new one above or unpin a favorite.",
     }));
+
+    updateListSummary();
   }
 
   function buildSection(title, sectionSites, options = {}) {
@@ -380,5 +396,51 @@ document.addEventListener("DOMContentLoaded", () => {
         <path d="M9.24 15.44l-5.3 5.3"></path>
       </svg>
     `;
+  }
+
+  function updateListCollapse(nextCollapsed) {
+    listCollapsed = nextCollapsed && sites.length > 0;
+    elements.sitePanel.classList.toggle("is-collapsed", listCollapsed);
+    elements.toggleSiteList.textContent = listCollapsed ? "Show list" : "Hide list";
+    elements.toggleSiteList.setAttribute("aria-expanded", String(!listCollapsed));
+    elements.siteListSummary.hidden = !listCollapsed;
+    updateListSummary();
+  }
+
+  function updateListSummary() {
+    if (!listCollapsed || !sites.length) {
+      elements.siteListSummary.hidden = true;
+      return;
+    }
+
+    const favoritesCount = sites.filter((site) => site.isPinned).length;
+    const activeSite = sites.find((site) => site.id === activeSiteId) ?? null;
+    const savedCount = sites.length;
+    const title = activeSite ? activeSite.name : "Saved websites";
+    const metaParts = [`${savedCount} saved`];
+
+    if (favoritesCount > 0) {
+      metaParts.push(`${favoritesCount} favorite${favoritesCount === 1 ? "" : "s"}`);
+    }
+
+    elements.siteListSummary.innerHTML = `
+      <span class="site-list-summary__copy">
+        <span class="site-list-summary__title">${escapeHtml(title)}</span>
+        <span class="site-list-summary__meta">${metaParts.join(" · ")}</span>
+      </span>
+      <svg class="site-list-summary__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m6 9 6 6 6-6"></path>
+      </svg>
+    `;
+    elements.siteListSummary.hidden = false;
+  }
+
+  function escapeHtml(value) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 });
