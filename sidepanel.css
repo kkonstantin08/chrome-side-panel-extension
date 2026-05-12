@@ -1,0 +1,138 @@
+:root {
+  --bg-color: #f8f9fa;
+  --border-color: #dee2e6;
+  --text-color: #212529;
+  --accent-color: #0d6efd;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #ffffff;
+  color: var(--text-color);
+}
+
+#toolbar {
+  padding: 12px;
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+#add-form {
+  display: flex;
+  gap: 8px;
+}
+
+#add-form input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+#add-form input:focus {
+  border-color: var(--accent-color);
+}
+
+#add-form button {
+  padding: 8px 16px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+#add-form button:hover {
+  background-color: #0b5ed7;
+}
+
+#site-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.site-btn-container {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.site-btn {
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color);
+}
+
+.site-btn:hover {
+  background-color: #e9ecef;
+}
+
+.delete-btn {
+  padding: 6px 8px;
+  background: #f8d7da;
+  color: #dc3545;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.delete-btn:hover {
+  background-color: #f5c2c7;
+}
+
+#iframe-container {
+  flex-grow: 1;
+  position: relative;
+}
+
+#empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6c757d;
+  font-size: 14px;
+  text-align: center;
+  z-index: 1;
+  padding: 20px;
+}
+
+iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 2;
+  background: white;
+  display: none;
+}

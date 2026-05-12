@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Боковая панель</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div id="toolbar">
+    <form id="add-form">
+      <input type="text" id="url-input" placeholder="URL (например, translate.google.com)" required>
+      <button type="submit">Добавить</button>
+    </form>
+    <div id="site-list"></div>
+  </div>
+  <div id="iframe-container">
+    <div id="empty-state">Выберите или добавьте сайт, чтобы открыть его здесь.</div>
+    <iframe id="content-frame" src="" sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe>
+  </div>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
