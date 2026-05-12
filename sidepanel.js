@@ -15,23 +15,26 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const elements = {
+    appShell: document.querySelector(".app-shell"),
     addForm: document.getElementById("add-form"),
     urlInput: document.getElementById("url-input"),
     formFeedback: document.getElementById("form-feedback"),
-    sitePanel: document.getElementById("site-panel"),
+    sitePanelLabel: document.getElementById("site-panel-label"),
+    sitePanelTitle: document.getElementById("site-panel-title"),
+    sitePanelCurrent: document.getElementById("site-panel-current"),
     siteList: document.getElementById("site-list"),
-    siteListSummary: document.getElementById("site-list-summary"),
     resetDefaults: document.getElementById("reset-defaults"),
-    toggleSiteList: document.getElementById("toggle-site-list"),
-    viewerTitle: document.getElementById("viewer-title"),
-    openExternalLink: document.getElementById("open-external-link"),
+    panelOpenExternal: document.getElementById("panel-open-external"),
+    closeSheet: document.getElementById("close-sheet"),
+    workBackdrop: document.getElementById("work-backdrop"),
+    workFab: document.getElementById("work-fab"),
     contentFrame: document.getElementById("content-frame"),
     emptyState: document.getElementById("empty-state"),
   };
 
   let sites = [];
   let activeSiteId = null;
-  let listCollapsed = false;
+  let isSheetOpen = false;
 
   initialize();
 
@@ -44,12 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
         (site, index) => result.sites[index]?.isPinned !== site.isPinned
       );
 
-      sites = normalizedSites.length
-        ? normalizedSites
-        : [...DEFAULT_SITES];
-      activeSiteId = typeof result.activeSiteId === "string"
-        ? result.activeSiteId
-        : null;
+      sites = normalizedSites.length ? normalizedSites : [...DEFAULT_SITES];
+      activeSiteId = typeof result.activeSiteId === "string" ? result.activeSiteId : null;
 
       if (!normalizedSites.length) {
         persistSites();
@@ -65,22 +64,28 @@ document.addEventListener("DOMContentLoaded", () => {
         openSite(activeSite, false);
       } else {
         closeViewer();
-        updateListCollapse(false);
         renderSites();
+        syncUi();
       }
     });
 
     elements.addForm.addEventListener("submit", handleAddSite);
     elements.resetDefaults.addEventListener("click", resetDefaults);
-    elements.toggleSiteList.addEventListener("click", () => updateListCollapse(!listCollapsed));
-    elements.siteListSummary.addEventListener("click", () => updateListCollapse(false));
+    elements.workFab.addEventListener("click", openSheet);
+    elements.workBackdrop.addEventListener("click", closeSheetOverlay);
+    elements.closeSheet.addEventListener("click", closeSheetOverlay);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && isSheetOpen) {
+        closeSheetOverlay();
+      }
+    });
   }
 
   function handleAddSite(event) {
     event.preventDefault();
 
     const rawValue = elements.urlInput.value.trim();
-
     if (!rawValue) {
       setFormFeedback("Enter a website address first.", "error");
       return;
@@ -89,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let normalizedUrl;
     try {
       normalizedUrl = normalizeUrl(rawValue);
-    } catch (error) {
+    } catch {
       setFormFeedback("Use a valid http or https address.", "error");
       return;
     }
@@ -118,9 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function normalizeUrl(rawValue) {
-    const candidate = /^https?:\/\//i.test(rawValue)
-      ? rawValue
-      : `https://${rawValue}`;
+    const candidate = /^https?:\/\//i.test(rawValue) ? rawValue : `https://${rawValue}`;
     const parsedUrl = new URL(candidate);
 
     if (!["http:", "https:"].includes(parsedUrl.protocol)) {
@@ -177,8 +180,8 @@ document.addEventListener("DOMContentLoaded", () => {
       activeSiteId = null;
       persistActiveSite();
       closeViewer();
-      updateListCollapse(false);
       renderSites();
+      syncUi();
       setFormFeedback("The dock is empty. Reset defaults or add a new site.", "error");
       return;
     }
@@ -189,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       openSite(sites[0], false);
     } else {
       renderSites();
+      syncUi();
     }
 
     setFormFeedback(`Removed ${deletedSite.name}.`, "success");
@@ -211,34 +215,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openSite(site, persist = true) {
     activeSiteId = site.id;
+    isSheetOpen = false;
+
     if (persist) {
       persistActiveSite();
       persistSites();
     }
 
-    updateListCollapse(true);
     elements.contentFrame.src = site.url;
     elements.contentFrame.style.display = "block";
     elements.emptyState.style.display = "none";
-    elements.viewerTitle.textContent = site.name;
-    elements.openExternalLink.href = site.url;
-    elements.openExternalLink.classList.remove("ghost-btn--disabled");
-    elements.openExternalLink.setAttribute("aria-disabled", "false");
-    elements.openExternalLink.title = `Open ${site.name} in a new tab`;
-    elements.openExternalLink.setAttribute("aria-label", `Open ${site.name} in a new tab`);
+
     renderSites();
+    syncUi();
   }
 
   function closeViewer() {
+    isSheetOpen = false;
     elements.contentFrame.src = "";
     elements.contentFrame.style.display = "none";
     elements.emptyState.style.display = "grid";
-    elements.viewerTitle.textContent = "Choose a website";
-    elements.openExternalLink.href = "#";
-    elements.openExternalLink.classList.add("ghost-btn--disabled");
-    elements.openExternalLink.setAttribute("aria-disabled", "true");
-    elements.openExternalLink.title = "Open current website in a new tab";
-    elements.openExternalLink.setAttribute("aria-label", "Open current website in a new tab");
+    syncUi();
+  }
+
+  function openSheet() {
+    if (!activeSiteId) {
+      return;
+    }
+
+    isSheetOpen = true;
+    syncUi();
+  }
+
+  function closeSheetOverlay() {
+    isSheetOpen = false;
+    syncUi();
+  }
+
+  function syncUi() {
+    const activeSite = sites.find((site) => site.id === activeSiteId) ?? null;
+    const isWorkMode = Boolean(activeSite);
+
+    elements.appShell.classList.toggle("is-work-mode", isWorkMode);
+    elements.appShell.classList.toggle("is-sheet-open", isWorkMode && isSheetOpen);
+
+    elements.workFab.hidden = !isWorkMode;
+    elements.workBackdrop.hidden = !(isWorkMode && isSheetOpen);
+    elements.closeSheet.hidden = !isWorkMode;
+    elements.panelOpenExternal.hidden = !isWorkMode;
+
+    if (isWorkMode) {
+      elements.sitePanelLabel.textContent = "Navigation";
+      elements.sitePanelTitle.textContent = "Switch website";
+      elements.sitePanelCurrent.hidden = false;
+      elements.sitePanelCurrent.textContent = `Currently viewing ${activeSite.name}`;
+      elements.panelOpenExternal.href = activeSite.url;
+      elements.panelOpenExternal.title = `Open ${activeSite.name} in a new tab`;
+      elements.panelOpenExternal.setAttribute("aria-label", `Open ${activeSite.name} in a new tab`);
+    } else {
+      elements.sitePanelLabel.textContent = "Saved stack";
+      elements.sitePanelTitle.textContent = "Quick launch list";
+      elements.sitePanelCurrent.hidden = true;
+      elements.sitePanelCurrent.textContent = "";
+      elements.panelOpenExternal.href = "#";
+      elements.panelOpenExternal.title = "Open current website in a new tab";
+      elements.panelOpenExternal.setAttribute("aria-label", "Open current website in a new tab");
+    }
   }
 
   function setFormFeedback(message, tone = "") {
@@ -258,7 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.siteList.innerHTML = "";
 
     if (!sites.length) {
-      updateListSummary();
       const emptyCard = document.createElement("div");
       emptyCard.className = "site-list__empty";
       emptyCard.textContent = "No saved websites yet. Add one above to start your workspace.";
@@ -282,8 +323,6 @@ document.addEventListener("DOMContentLoaded", () => {
       countLabel: `${allSites.length}`,
       emptyMessage: "No regular sites yet. Add a new one above or unpin a favorite.",
     }));
-
-    updateListSummary();
   }
 
   function buildSection(title, sectionSites, options = {}) {
@@ -349,7 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const name = document.createElement("span");
     name.className = "site-row__name";
     name.textContent = site.name;
-
     mainButton.appendChild(name);
 
     const actions = document.createElement("div");
@@ -376,7 +414,6 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteButton.addEventListener("click", () => deleteSite(site.id));
 
     actions.appendChild(deleteButton);
-
     row.append(pinButton, mainButton, actions);
     return row;
   }
@@ -396,51 +433,5 @@ document.addEventListener("DOMContentLoaded", () => {
         <path d="M9.24 15.44l-5.3 5.3"></path>
       </svg>
     `;
-  }
-
-  function updateListCollapse(nextCollapsed) {
-    listCollapsed = nextCollapsed && sites.length > 0;
-    elements.sitePanel.classList.toggle("is-collapsed", listCollapsed);
-    elements.toggleSiteList.textContent = listCollapsed ? "Show list" : "Hide list";
-    elements.toggleSiteList.setAttribute("aria-expanded", String(!listCollapsed));
-    elements.siteListSummary.hidden = !listCollapsed;
-    updateListSummary();
-  }
-
-  function updateListSummary() {
-    if (!listCollapsed || !sites.length) {
-      elements.siteListSummary.hidden = true;
-      return;
-    }
-
-    const favoritesCount = sites.filter((site) => site.isPinned).length;
-    const activeSite = sites.find((site) => site.id === activeSiteId) ?? null;
-    const savedCount = sites.length;
-    const title = activeSite ? activeSite.name : "Saved websites";
-    const metaParts = [`${savedCount} saved`];
-
-    if (favoritesCount > 0) {
-      metaParts.push(`${favoritesCount} favorite${favoritesCount === 1 ? "" : "s"}`);
-    }
-
-    elements.siteListSummary.innerHTML = `
-      <span class="site-list-summary__copy">
-        <span class="site-list-summary__title">${escapeHtml(title)}</span>
-        <span class="site-list-summary__meta">${metaParts.join(" · ")}</span>
-      </span>
-      <svg class="site-list-summary__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m6 9 6 6 6-6"></path>
-      </svg>
-    `;
-    elements.siteListSummary.hidden = false;
-  }
-
-  function escapeHtml(value) {
-    return value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
   }
 });

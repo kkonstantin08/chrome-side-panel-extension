@@ -13,63 +13,60 @@
         <p class="topbar__eyebrow">Translator Dock</p>
         <h1>Saved websites</h1>
       </div>
-
-      <form id="add-form" class="add-card">
-        <label class="field-label" for="url-input">Add website</label>
-        <div class="input-row">
-          <input
-            type="text"
-            id="url-input"
-            placeholder="translate.google.com"
-            autocomplete="off"
-            required
-          >
-          <button type="submit" class="primary-btn">Add site</button>
-        </div>
-        <p id="form-feedback" class="form-feedback" role="status" aria-live="polite">
-          Paste a domain or full URL to add a new tool to the dock.
-        </p>
-      </form>
     </header>
 
     <main class="workspace">
       <section id="site-panel" class="panel panel--faded site-panel">
-        <div class="panel__header">
-          <div>
-            <p class="panel__label">Saved stack</p>
-            <h2>Quick launch list</h2>
+        <div class="site-panel__sheet">
+          <div class="panel__header site-panel__header">
+            <div>
+              <p id="site-panel-label" class="panel__label">Saved stack</p>
+              <h2 id="site-panel-title">Quick launch list</h2>
+              <p id="site-panel-current" class="site-panel__current" hidden></p>
+            </div>
+            <div class="panel__actions">
+              <a
+                id="panel-open-external"
+                class="ghost-btn ghost-btn--link"
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                hidden
+              >
+                Open in tab
+              </a>
+              <button id="reset-defaults" class="ghost-btn" type="button">Reset defaults</button>
+              <button id="close-sheet" class="icon-btn site-panel__close" type="button" hidden aria-label="Close navigation">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6l12 12"></path>
+                  <path d="M18 6 6 18"></path>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="panel__actions">
-            <button id="reset-defaults" class="ghost-btn" type="button">Reset defaults</button>
-            <button id="toggle-site-list" class="ghost-btn" type="button" aria-expanded="true">Hide list</button>
-          </div>
-        </div>
 
-        <button id="site-list-summary" class="site-list-summary" type="button" hidden></button>
-        <div id="site-list" class="site-list"></div>
+          <form id="add-form" class="add-card add-card--panel">
+            <label class="field-label" for="url-input">Add website</label>
+            <div class="input-row">
+              <input
+                type="text"
+                id="url-input"
+                placeholder="translate.google.com"
+                autocomplete="off"
+                required
+              >
+              <button type="submit" class="primary-btn">Add site</button>
+            </div>
+            <p id="form-feedback" class="form-feedback" role="status" aria-live="polite">
+              Paste a domain or full URL to add a new tool to the dock.
+            </p>
+          </form>
+
+          <div id="site-list" class="site-list"></div>
+        </div>
       </section>
 
       <section class="panel viewer-panel">
-        <div class="viewer-toolbar">
-          <p id="viewer-title" class="viewer-toolbar__title">Choose a website</p>
-          <a
-            id="open-external-link"
-            class="icon-link ghost-btn--disabled"
-            href="#"
-            target="_blank"
-            rel="noreferrer"
-            aria-disabled="true"
-            aria-label="Open current website in a new tab"
-            title="Open current website in a new tab"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 5h5v5"></path>
-              <path d="M10 14 19 5"></path>
-              <path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4"></path>
-            </svg>
-          </a>
-        </div>
-
         <div id="viewer-stage" class="viewer-stage">
           <div id="empty-state" class="empty-state">
             <div class="empty-state__icon" aria-hidden="true">
@@ -102,6 +99,15 @@
         </div>
       </section>
     </main>
+
+    <button id="work-backdrop" class="work-backdrop" type="button" hidden aria-label="Close navigation"></button>
+    <button id="work-fab" class="work-fab" type="button" hidden aria-label="Open navigation" title="Open navigation">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16"></path>
+        <path d="M4 12h16"></path>
+        <path d="M4 17h10"></path>
+      </svg>
+    </button>
   </div>
 
   <script src="sidepanel.js"></script>
