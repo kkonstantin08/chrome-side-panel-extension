@@ -1,23 +1,103 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Боковая панель</title>
+  <title>Translator Dock</title>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
-<body>
-  <div id="toolbar">
-    <form id="add-form">
-      <input type="text" id="url-input" placeholder="URL (например, translate.google.com)" required>
-      <button type="submit">Добавить</button>
-    </form>
-    <div id="site-list"></div>
+  <body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__copy">
+        <p class="topbar__eyebrow">Translator Dock</p>
+        <h1>Saved websites</h1>
+      </div>
+
+      <form id="add-form" class="add-card">
+        <label class="field-label" for="url-input">Add website</label>
+        <div class="input-row">
+          <input
+            type="text"
+            id="url-input"
+            placeholder="translate.google.com"
+            autocomplete="off"
+            required
+          >
+          <button type="submit" class="primary-btn">Add site</button>
+        </div>
+        <p id="form-feedback" class="form-feedback" role="status" aria-live="polite">
+          Paste a domain or full URL to add a new tool to the dock.
+        </p>
+      </form>
+    </header>
+
+    <main class="workspace">
+      <section class="panel panel--faded">
+        <div class="panel__header">
+          <div>
+            <p class="panel__label">Saved stack</p>
+            <h2>Quick launch list</h2>
+          </div>
+          <button id="reset-defaults" class="ghost-btn" type="button">Reset defaults</button>
+        </div>
+
+        <div id="site-list" class="site-list"></div>
+      </section>
+
+      <section class="panel viewer-panel">
+        <div class="panel__header panel__header--viewer">
+          <div>
+            <p class="panel__label">Embedded view</p>
+            <h2 id="viewer-title">Choose a website</h2>
+            <p id="viewer-url" class="viewer-url">Your selected tool will open here inside the side panel.</p>
+          </div>
+          <a
+            id="open-external-link"
+            class="ghost-btn ghost-btn--link ghost-btn--disabled"
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+            aria-disabled="true"
+          >
+            Open in tab
+          </a>
+        </div>
+
+        <div id="viewer-stage" class="viewer-stage">
+          <div id="empty-state" class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" role="img">
+                <defs>
+                  <linearGradient id="panelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#df37a7"></stop>
+                    <stop offset="100%" stop-color="#ffcc11"></stop>
+                  </linearGradient>
+                </defs>
+                <rect x="10" y="12" width="44" height="40" rx="12" fill="url(#panelGradient)"></rect>
+                <rect x="18" y="20" width="28" height="4" rx="2" fill="#ffffff"></rect>
+                <rect x="18" y="30" width="19" height="4" rx="2" fill="#ffffff" opacity="0.9"></rect>
+                <circle cx="43" cy="38" r="6" fill="#ffffff" opacity="0.92"></circle>
+              </svg>
+            </div>
+            <h3>Start with a saved tool</h3>
+            <p>
+              Pick Google Translate, DeepL, or any custom site from the list
+              above. Some websites may block iframe embedding.
+            </p>
+          </div>
+
+          <iframe
+            id="content-frame"
+            src=""
+            title="Embedded website"
+            sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+          ></iframe>
+        </div>
+      </section>
+    </main>
   </div>
-  <div id="iframe-container">
-    <div id="empty-state">Выберите или добавьте сайт, чтобы открыть его здесь.</div>
-    <iframe id="content-frame" src="" sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe>
-  </div>
+
   <script src="sidepanel.js"></script>
 </body>
 </html>
